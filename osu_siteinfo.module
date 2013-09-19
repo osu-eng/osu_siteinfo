@@ -1,0 +1,235 @@
+<?php
+/**
+ * @file
+ * A module for managing basic site information that is used for theme purposes.
+ */
+
+/**
+ * Implements hook_help
+ * 
+ * Displays help and module information.
+ *
+ * @param path
+ * 		Which path of the site we're using to display help
+ * @param arg
+ * 		Array that holds the current path as returned from arg() function
+ */
+
+function osu_siteinfo_help($path, $arg) {
+  switch ($path) {
+  	case "admin/help#osu_siteinfo":
+  	  return '<p>' . t("Dispalys links to nodes created on this date") . '</p>';
+  	  break;
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+
+function osu_siteinfo_block_info() {
+	$blocks['social'] = array('info' => 'Social Media', 'cache' => DRUPAL_CACHE_PER_ROLE);
+	$blocks['sitename'] = array('info' => 'Site Name', 'cache' => DRUPAL_CACHE_PER_ROLE);
+	return $blocks;
+}
+
+/**
+ * Implements hook_menu().
+ */
+
+function osu_siteinfo_menu() {
+	$items = array();
+	$items['admin/config/content/osu_siteinfo'] = array( 
+		'title' => 'Site Information',
+		'description' => 'Configuration for SiteInfo module.',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('osu_siteinfo_form'),
+		'access arguments' => array('access administration pages'),
+		'type' => MENU_NORMAL_ITEM,
+		);
+	return $items;
+}
+
+
+/**
+ * Page callback: OSU SiteInfo settings
+ *
+ * @see osu_siteinfo_menu()
+ */
+
+function osu_siteinfo_form($form,&$form_state) {
+	$form['group1'] = array(
+  		'#type' => 'fieldset',
+  		'#title' => t('Site Information'),
+  		'#collapsible' => FALSE,
+  		'#collapsed' => FALSE,  
+	);
+
+	$form['group1']['osu_siteinfo_prefix'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Site Name Prefix'),
+		'#default_value' => variable_get('osu_siteinfo_prefix', ''),
+		'#size' => '50',
+		'#maxlength' => '50',
+		'#description' => t('The prefix for your site name - for example, <i>Department of</i> ... '),
+		'#required' => FALSE,
+	);
+
+	$form['group1']['osu_siteinfo_name'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Site Name'),
+		'#default_value' => variable_get('osu_siteinfo_name', 'College of Engineering'),
+		'#size' => '50',
+		'#maxlength' => '75',
+		'#description' => t('This is the main name for the site - it should be college, department or organization name'),
+		'#required' => TRUE,
+	);
+
+	$form['group1']['osu_siteinfo_slogan'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Slogan'),
+		'#default_value' => variable_get('osu_siteinfo_slogan'),
+		'#size' => '50',
+		'#maxlength' => '50',
+		'#description' => t("Your site's motto, tagline of catch phrase."),
+		'#required' => FALSE,
+	);
+
+	$form['group1']['osu_siteinfo_copyright'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Copyright Holder'),
+		'#default_value' => variable_get('osu_siteinfo_copyright'),
+		'#size' => '50',
+		'#maxlength' => '50',
+		'#description' => t("Your organization name or  copyright holder for your website."),
+		'#required' => FALSE,
+	);
+
+	$form['group2'] = array(
+  		'#type' => 'fieldset',
+  		'#title' => t('Contact Information'),
+  		'#collapsible' => FALSE,
+  		'#collapsed' => FALSE,  
+	);
+
+	$form['group2']['osu_siteinfo_address'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Street Address Line 1'),
+		'#default_value' => variable_get('osu_siteinfo_address'),
+		'#size' => '50',
+		'#maxlength' => '50',
+		'#description' => t("First line of your street address - e.g. 025 Hitchcock Hall"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_address2'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Street Address Line 2'),
+		'#default_value' => variable_get('osu_siteinfo_address2'),
+		'#size' => '50',
+		'#maxlength' => '50',
+		'#description' => t("Second line of your street address - e.g. 2070 Neil Ave"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_city'] = array(
+		'#type' => 'textfield',
+		'#title' => t('City'),
+		'#default_value' => variable_get('osu_siteinfo_city'),
+		'#size' => '30',
+		'#maxlength' => '50',
+		'#description' => t("City - e.g. Columbus"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_state'] = array(
+		'#type' => 'textfield',
+		'#title' => t('State/Province'),
+		'#default_value' => variable_get('osu_siteinfo_state'),
+		'#size' => '30',
+		'#maxlength' => '50',
+		'#description' => t("State or Province - e.g. OH or Ohio"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_zip'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Zip/Postal Code'),
+		'#default_value' => variable_get('osu_siteinfo_zip'),
+		'#size' => '10',
+		'#maxlength' => '15',
+		'#description' => t("Zip or Postal Code - e.g. 43210"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_phone'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Phone Number'),
+		'#default_value' => variable_get('osu_siteinfo_phone'),
+		'#size' => '15',
+		'#maxlength' => '15',
+		'#description' => t("Main contact phone number for your site - e.g. (614) 555-5555"),
+		'#required' => FALSE,
+	);
+
+	$form['group2']['osu_siteinfo_fax'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Fax Number'),
+		'#default_value' => variable_get('osu_siteinfo_fax'),
+		'#size' => '15',
+		'#maxlength' => '15',
+		'#description' => t("Fax number for your site - e.g. (614) 555-5555"),
+		'#required' => FALSE,
+	);
+
+	$form['group3'] = array(
+  		'#type' => 'fieldset',
+  		'#title' => t('Social Networking'),
+  		'#collapsible' => FALSE,
+  		'#collapsed' => FALSE,  
+	);
+
+	$form['group3']['osu_siteinfo_facebook'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Facebook'),
+		'#default_value' => variable_get('osu_siteinfo_facebook'),
+		'#size' => '100',
+		'#maxlength' => '150',
+		'#description' => t(''),
+		'#required' => FALSE,
+	);
+
+	$form['group3']['osu_siteinfo_twitter'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Twitter'),
+		'#default_value' => variable_get('osu_siteinfo_twitter'),
+		'#size' => '100',
+		'#maxlength' => '150',
+		'#description' => t(''),
+		'#required' => FALSE,
+	);
+
+	$form['group3']['osu_siteinfo_youtube'] = array(
+		'#type' => 'textfield',
+		'#title' => t('YouTube'),
+		'#default_value' => variable_get('osu_siteinfo_youtube'),
+		'#size' => '100',
+		'#maxlength' => '150',
+		'#description' => t(''),
+		'#required' => FALSE,
+	);
+
+		$form['group3']['osu_siteinfo_linkedin'] = array(
+		'#type' => 'textfield',
+		'#title' => t('LinkedIn'),
+		'#default_value' => variable_get('osu_siteinfo_linkedin'),
+		'#size' => '100',
+		'#maxlength' => '150',
+		'#description' => t(''),
+		'#required' => FALSE,
+	);
+
+	return system_settings_form($form);
+ }
+
+

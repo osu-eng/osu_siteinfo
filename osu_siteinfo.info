@@ -1,0 +1,8 @@
+name = OSU Site Info
+description = "Site information module for the OSU College of Engineering distribution."
+core = 7.x
+package = Ohio State University
+version = 7.x-1.0-dev
+
+; Admin info
+configure = admin/config/content/osu_siteinfo
