@@ -2,7 +2,11 @@ name = OSU Site Info
 description = "Site information module for the OSU College of Engineering distribution."
 core = 7.x
 package = Ohio State University
-version = 7.x-1.0-dev
+version = 7.x-1.5
 
 ; Admin info
 configure = admin/config/content/osu_siteinfo
+
+; Dependencies
+dependencies[] = token
+dependencies[] = token_filter
