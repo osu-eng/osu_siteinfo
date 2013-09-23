@@ -28,8 +28,9 @@ function osu_siteinfo_help($path, $arg) {
  */
 
 function osu_siteinfo_block_info() {
-	$blocks['social'] = array('info' => 'Social Media', 'cache' => DRUPAL_CACHE_PER_ROLE);
-	$blocks['sitename'] = array('info' => 'Site Name', 'cache' => DRUPAL_CACHE_PER_ROLE);
+	$blocks['siteinfo_social'] = array('info' => 'SiteInfo: Social Media Links', 'cache' => DRUPAL_CACHE_PER_ROLE);
+	$blocks['siteinfo_sitename'] = array('info' => 'SiteInfo: Site Name', 'cache' => DRUPAL_CACHE_PER_ROLE);
+	$blocks['siteinfo_address'] = array('info' => 'SiteInfo: Address', 'cache' => DRUPAL_CACHE_PER_ROLE);
 	return $blocks;
 }
 
@@ -68,20 +69,20 @@ function osu_siteinfo_form($form,&$form_state) {
 	$form['group1']['osu_siteinfo_prefix'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Site Name Prefix'),
-		'#default_value' => variable_get('osu_siteinfo_prefix', ''),
+		'#default_value' => variable_get('osu_siteinfo_prefix'),
 		'#size' => '50',
 		'#maxlength' => '50',
 		'#description' => t('The prefix for your site name - for example, <i>Department of</i> ... '),
 		'#required' => FALSE,
 	);
 
-	$form['group1']['osu_siteinfo_name'] = array(
+	$form['group1']['site_name'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Site Name'),
-		'#default_value' => variable_get('osu_siteinfo_name', 'College of Engineering'),
+		'#default_value' => variable_get('site_name'),
 		'#size' => '50',
 		'#maxlength' => '75',
-		'#description' => t('This is the main name for the site - it should be college, department or organization name'),
+		'#description' => t('Main name for the site - it should be your college, department or organization name'),
 		'#required' => TRUE,
 	);
 
@@ -91,9 +92,16 @@ function osu_siteinfo_form($form,&$form_state) {
 		'#default_value' => variable_get('osu_siteinfo_slogan'),
 		'#size' => '50',
 		'#maxlength' => '50',
-		'#description' => t("Your site's motto, tagline of catch phrase."),
+		'#description' => t("Your site's motto, tagline or catch phrase."),
 		'#required' => FALSE,
 	);
+
+    $form['group1']['osu_siteinfo_is_osu_site'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('University Site'),
+        '#description' => t("Check this box if your site is officially affiliated with the Ohio State University."),
+        '#required' => FALSE,
+    );
 
 	$form['group1']['osu_siteinfo_copyright'] = array(
 		'#type' => 'textfield',
@@ -101,7 +109,7 @@ function osu_siteinfo_form($form,&$form_state) {
 		'#default_value' => variable_get('osu_siteinfo_copyright'),
 		'#size' => '50',
 		'#maxlength' => '50',
-		'#description' => t("Your organization name or  copyright holder for your website."),
+		'#description' => t("Your organization name or copyright holder for your website."),
 		'#required' => FALSE,
 	);
 
@@ -182,6 +190,16 @@ function osu_siteinfo_form($form,&$form_state) {
 		'#required' => FALSE,
 	);
 
+	$form['group2']['osu_siteinfo_email'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Email Address'),
+		'#default_value' => variable_get('osu_siteinfo_email'),
+		'#size' => '100',
+		'#maxlength' => '100',
+		'#description' => t("Contact email address for your website"),
+		'#required' => FALSE,
+	);
+
 	$form['group3'] = array(
   		'#type' => 'fieldset',
   		'#title' => t('Social Networking'),
@@ -232,4 +250,330 @@ function osu_siteinfo_form($form,&$form_state) {
 	return system_settings_form($form);
  }
 
+/*
+ * Implements hook_block_view()
+ */
 
+function osu_siteinfo_block_view($delta = '') {
+	switch ($delta) {
+		case "siteinfo_social":
+			//$block['subject'] = t('Social Media Links');
+			if (user_access('access content')) {
+				$block['content'] = osu_siteinfo_social_content();
+				
+			}
+			break;
+		
+		case "siteinfo_sitename":
+			//$block['subject'] = t('Site Name');
+			if (user_access('access content')) {
+				$block['content'] = osu_siteinfo_sitename_content();
+				
+			}
+			break;
+
+		case "siteinfo_address":
+			//$block['subject'] = t('Contact Address');
+			if (user_access('access content')) {
+				$block['content'] = osu_siteinfo_address_content();
+				
+			}
+			break;
+	}
+
+	if (!isset($block)) {
+		$block['subject'] = t('SiteInfo Block');
+		$block['content'] = t('This SiteInfo Block has not been properly generated');
+	}
+
+	if (isset($block)) {
+		return $block;
+	}
+}
+
+/*
+ * Function to generate Social Media links 
+ *
+ * Check the stored settings variables to determine which links (if any) should be
+ * generated. Return formatted HTML block
+ *
+ * @return
+ *		An HTML block of social media links
+ */
+
+function osu_siteinfo_social_content() {
+	$facebook_url	= variable_get('osu_siteinfo_facebook');
+	$twitter_url	= variable_get('osu_siteinfo_twitter');
+	$youtube_url	= variable_get('osu_siteinfo_youtube');
+	$linkedin_url	= variable_get('osu_siteinfo_linkedin');
+
+
+    $social_networks    = array("facebook","twitter","youtube","linkedin");
+
+    $content     = "<div class=\"siteinfo-social\">\n";
+    foreach ($social_networks as $network_var) {
+        $network_var_variable = $network_var . "_url";
+        $network_url = trim($$network_var_variable);
+        if (strlen($network_url) > 0) {
+            // display this link
+            $css      = "siteinfo-social-link link-" . $network_var;
+            $content .= "<a href=\"$network_url\" target=\"_blank\" class=\"$css\">$network_var</a>\n";
+        }
+    }
+    $content    .= "</div>";
+
+	return $content;
+}
+
+/*
+ * Function to create the site name block
+ *
+ * Checks the stored variables for the site name and site name prefix. Assigns an 
+ * additional CSS class based on the length of the site name string, to allow better
+ * scaling of text when added to theme.
+ *
+ * @return
+ *		HTML block containing sitename with optional prefix
+ */
+
+function osu_siteinfo_sitename_content() {
+	$sitename 	= trim(variable_get('site_name'));
+	$prefix 	= variable_get('osu_siteinfo_prefix');
+
+
+    if (strlen($sitename) <= 20) {
+        $css_class = "siteinfo-sitename-largetext";
+    }
+    else if (strlen($sitename) < 30) {
+        $css_class = "siteinfo-sitename=normaltext";
+    }
+    else if (strlen($sitename) < 38) {
+        $css_class = "siteinfo-sitename-mediumtext";
+    }
+    else {
+        $css_class = "siteinfo-sitename-smalltext";
+    }
+
+
+	$content 	= "<h1 class=\"site-name osu-siteinfo-sitename $css_class\">\n";
+	$content 	.= "\t<a href=\"" .  url('<front>') . "\" title=\"" . t('Home') . "\" rel=\"home\">\n";
+	$content 	.= "\t\t<span class=\"siteinfo-sitename-prefix\">$prefix</span>\n";
+    $content    .= "\t\t<span class=\"siteinfo-sitename\">$sitename</span>\n";
+    $content    .= "\t</a>\n";
+	$content 	.= "</h1>\n";
+
+    return $content;
+}
+
+/*
+ * Function to create the address information block content.
+ *
+ * Generates the address information block's content based on the variables set through the SiteInfo
+ * module.
+ *
+ * @return
+ *      HTML content for the address block
+ */
+
+function osu_siteinfo_address_content($wrap = true) {
+    $sitename   = variable_get("site_name");
+    $address    = variable_get("osu_siteinfo_address");
+    $address2   = variable_get("osu_siteinfo_address2");
+    $city       = variable_get("osu_siteinfo_city");
+    $state      = variable_get("osu_siteinfo_state");
+    $zip        = variable_get("osu_siteinfo_zip");
+
+    $content = "";
+
+    if (!empty($address)) {
+        $content .= "<span>$address</span>\n";
+    }
+    if (!empty($address2)) {
+        $content .= "<span>$address2</span>\n";
+    }
+    // Only fill in site name and city/state/zip if an address line has been provided.
+    // Would not make sense to display an address block without an actual street address.
+    if (!empty($content)) {
+        $content = "<span class='siteinfo-address-title'>$sitename</span>\n"  . $content;
+
+        $content .= "<span>$city, $state $zip</span>\n";
+    }
+
+    // wrap entire contents in a div
+    if (!empty($content) && $wrap) {
+        $content = "<div class='siteinfo-address'>$content</div>\n";
+    }
+
+    return $content;
+}
+
+/**
+ * Implements hook_token_info()
+ *
+ * @ingroup osu_siteinfo
+ */
+
+function osu_siteinfo_token_info() {
+
+    /*
+     * General SiteInfo tokens
+     */
+
+    $info['tokens']['site']['name-block'] = array(
+        'name' => t('Name block'),
+        'description' => t('Site name block from SiteInfo')
+    );
+
+    $info['tokens']['site']['name-prefix'] = array(
+        'name' => t('Name prefix'),
+        'description' => t('Site name prefix from SiteInfo')
+    );
+
+    $info['tokens']['site']['slogan'] = array(
+        'name' => t('Slogan'),
+        'description' => t('Slogan/tag line from SiteInfo')
+    );
+
+    $info['tokens']['site']['copyright'] = array(
+        'name' => t('Copyright'),
+        'description' => t('Copyright information from SiteInfo')
+    );
+
+    /*
+     * Address-related SiteInfo tokens
+     */
+
+    $info['types']['address'] = array(
+        'name' => t('Address Information'),
+        'description' => 'Tokens related to the physical/mailing address',
+        'needs-data' => 'site'
+    );
+
+    $info['tokens']['address']['full'] = array(
+        'name' => t('Full Address'),
+        'description' => t('Full address block from SiteInfo')
+    );
+
+    $info['tokens']['address']['street'] = array(
+        'name' => t('Street Address'),
+        'description' => t('First line of street address from SiteInfo')
+    );
+
+    $info['tokens']['address']['street2'] = array(
+        'name' => t('Street Address 2'),
+        'description' => t('Second line of street address from SiteInfo')
+    );
+
+    $info['tokens']['address']['city'] = array(
+        'name' => t('Address City'),
+        'description' => t('City from address information from SiteInfo')
+    );
+
+    $info['tokens']['address']['state'] = array(
+        'name' => t('Address State'),
+        'description' => t('State from address information from SiteInfo')
+    );
+
+    $info['tokens']['address']['zip'] = array(
+        'name' => t('Address Zip'),
+        'description' => t('Zip code from address information from SiteInfo')
+    );
+
+
+    /*
+    * Social networking related SiteInfo tokens
+    */
+
+    $info['types']['social'] = array(
+        'name' => t('Social Networking'),
+        'description' => 'Tokens related to Social Networking settings',
+        'needs-data' => 'site'
+        );
+
+    $info['tokens']['social']['facebook'] = array(
+        'name' => t('Facebook URL'),
+        'description' => 'Facebook URL from SiteInfo'
+    );
+
+    $info['tokens']['social']['twitter'] = array(
+        'name' => t('Twitter URL'),
+        'description' => 'Twitter URL from SiteInfo'
+    );
+
+    $info['tokens']['social']['youtube'] = array(
+        'name' => t('YouTube URL'),
+        'description' => 'YouTube URL from SiteInfo'
+    );
+
+    $info['tokens']['social']['linkedin'] = array(
+        'name' => t('LinkedIn URL'),
+        'description' => 'LinkedIn URL from SiteInfo'
+    );
+
+    return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ *
+ * @ingroup osu_siteinfo
+ */
+function osu_siteinfo_tokens($type, $tokens, array $data = array(), array $options = array()) {
+    $replacements = array();
+    $sanitize = !empty($options['sanitize']);
+
+    if ($type == 'site') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'slogan':
+                    $replacements[$original] = variable_get('osu_siteinfo_slogan');
+                    break;
+
+                case 'name-prefix':
+                    $replacements[$original] = variable_get('osu_siteinfo_prefix');
+                    break;
+
+                case 'copyright':
+                    $replacements[$original] = variable_get('osu_siteinfo_copyright');
+                    break;
+
+                case 'name-block':
+                    $replacements[$original] = osu_siteinfo_sitename_content();
+                    break;
+            }
+        }
+    }
+
+    if ($type == 'social') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'facebook':
+                case 'twitter':
+                case 'linkedin':
+                case 'youtube':
+                    $replacements[$original] = variable_get('osu_siteinfo_' . $name);
+                    break;
+            }
+        }
+    }
+
+    if ($type == 'address') {
+        foreach ($tokens as $name => $original) {
+            switch ($name) {
+                case 'address':
+                case 'address2':
+                case 'city':
+                case 'state':
+                case 'zip':
+                    $replacements[$original] = variable_get('osu_siteinfo_' . $name);
+                    break;
+
+                case 'full':
+                    $replacements[$original] = osu_siteinfo_address_content(false);
+            }
+        }
+    }
+
+
+    return $replacements;
+}
