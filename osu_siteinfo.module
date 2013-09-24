@@ -479,6 +479,20 @@ function osu_siteinfo_token_info() {
         'description' => t('Zip code from address information from SiteInfo')
     );
 
+    $info['tokens']['address']['phone'] = array(
+        'name' => t('Phone Number'),
+        'description' => t('Phone number from SiteInfo')
+    );
+
+    $info['tokens']['address']['fax'] = array(
+        'name' => t('Fax Number'),
+        'description' => t('Fax number from SiteInfo')
+    );
+
+    $info['tokens']['address']['email'] = array(
+        'name' => t('Email Address'),
+        'description' => t('Email address from SiteInfo')
+    );
 
     /*
     * Social networking related SiteInfo tokens
@@ -565,6 +579,12 @@ function osu_siteinfo_tokens($type, $tokens, array $data = array(), array $optio
                 case 'city':
                 case 'state':
                 case 'zip':
+                    $replacements[$original] = variable_get('osu_siteinfo_' . $name);
+                    break;
+
+                case 'phone':
+                case 'fax':
+                case 'email':
                     $replacements[$original] = variable_get('osu_siteinfo_' . $name);
                     break;
 
